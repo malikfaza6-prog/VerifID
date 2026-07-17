@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - VerifID{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-card--blue">
+                <div class="stat-card__icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-card__body">
+                    <div class="stat-card__value" id="statPegawai">{{ summary.total_pegawai }}</div>
+                    <div class="stat-card__label">Total Pegawai</div>
+                </div>
+                <div class="stat-card__bg-icon"><i class="bi bi-people-fill"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-card--green">
+                <div class="stat-card__icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-card__body">
+                    <div class="stat-card__value" id="statHadir">{{ summary.hadir }}</div>
+                    <div class="stat-card__label">Hadir Hari Ini</div>
+                </div>
+                <div class="stat-card__bg-icon"><i class="bi bi-check-circle-fill"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-card--orange">
+                <div class="stat-card__icon">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="stat-card__body">
+                    <div class="stat-card__value" id="statTerlambat">{{ summary.terlambat }}</div>
+                    <div class="stat-card__label">Terlambat</div>
+                </div>
+                <div class="stat-card__bg-icon"><i class="bi bi-clock-fill"></i></div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card stat-card--red">
+                <div class="stat-card__icon">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="stat-card__body">
+                    <div class="stat-card__value" id="statBelum">{{ summary.belum_hadir }}</div>
+                    <div class="stat-card__label">Belum Hadir</div>
+                </div>
+                <div class="stat-card__bg-icon"><i class="bi bi-x-circle-fill"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Kehadiran & Ringkasan -->
+    <div class="row g-4">
+        <!-- Tabel status kehadiran per pegawai hari ini -->
+        <div class="col-xl-8">
+            <div class="card-panel">
+                <div class="card-panel__header">
+                    <h5 class="card-panel__title">
+                        <i class="bi bi-people-fill me-2 text-primary"></i>
+                        Status Kehadiran Hari Ini
+                    </h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                </div>
+                <div class="card-panel__body p-0">
+                    <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                        <table class="table table-hover table-custom mb-0" id="statusTable">
+                            <thead>
+                                <tr>
+                                    <th>Mahasiswa</th>
+                                    <th>Kelas/Prodi</th>
+                                    <th>Mata Kuliah Terakhir</th>
+                                    <th>Jam</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statusTableBody">
+                                {% for r in today_list %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            {% if r.foto %}
+                                                <img src="{{ url_for('static', filename='uploads/' + r.foto) }}" class="avatar-sm" alt="{{ r.nama }}">
+                                            {% else %}
+                                                <div class="avatar-placeholder">{{ r.nama[0].upper() if r.nama else '?' }}</div>
+                                            {% endif %}
+                                            <div>
+                                                <div><strong>{{ r.nama }}</strong></div>
+                                                <div class="text-muted small">{{ r.nik }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ r.departemen or '-' }}</td>
+                                    <td>
+                                        {% if r.matkul_nama %}
+                                            {{ r.matkul_nama }}
+                                            {% if r.matkul_count and r.matkul_count > 1 %}
+                                                <span class="badge bg-secondary ms-1">+{{ r.matkul_count - 1 }} lainnya</span>
+                                            {% endif %}
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if r.jam_masuk %}
+                                            <span class="time-badge">{{ r.jam_masuk | string | truncate(5, True, '') }}</span>
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if r.status == 'hadir' %}
+                                            <span class="badge bg-success">Hadir</span>
+                                        {% elif r.status == 'terlambat' %}
+                                            <span class="badge bg-warning text-dark">Terlambat</span>
+                                        {% elif r.status == 'pulang' %}
+                                            <span class="badge bg-info">Pulang</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Belum Hadir</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        Belum ada data pegawai.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ringkasan hari ini (progress bar, tanpa chart) -->
+        <div class="col-xl-4">
+            <div class="card-panel h-100">
+                <div class="card-panel__header">
+                    <h5 class="card-panel__title">
+                        <i class="bi bi-clipboard-data-fill me-2 text-success"></i>
+                        Ringkasan Hari Ini
+                    </h5>
+                </div>
+                <div class="card-panel__body">
+                    {% set total = summary.total_pegawai if summary.total_pegawai else 1 %}
+                    {% set tepat_waktu = summary.hadir - summary.terlambat %}
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-check-circle-fill text-success me-1"></i>Tepat Waktu</span>
+                            <strong id="sumTepatWaktu">{{ tepat_waktu }}</strong>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" id="barTepatWaktu"
+                                 style="width: {{ (tepat_waktu / total * 100) if total else 0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-clock-fill text-warning me-1"></i>Terlambat</span>
+                            <strong id="sumTerlambat">{{ summary.terlambat }}</strong>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-warning" id="barTerlambat"
+                                 style="width: {{ (summary.terlambat / total * 100) if total else 0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="bi bi-x-circle-fill text-danger me-1"></i>Belum Hadir</span>
+                            <strong id="sumBelum">{{ summary.belum_hadir }}</strong>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-danger" id="barBelum"
+                                 style="width: {{ (summary.belum_hadir / total * 100) if total else 0 }}%"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between text-muted small">
+                        <span>Total Pegawai Aktif</span>
+                        <strong>{{ summary.total_pegawai }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row g-4 mt-0">
+        <div class="col-12">
+            <div class="card-panel">
+                <div class="card-panel__header">
+                    <h5 class="card-panel__title">
+                        <i class="bi bi-activity me-2 text-info"></i>
+                        Aktivitas Terbaru
+                    </h5>
+                    <a href="{{ url_for('attendance.history') }}" class="btn btn-sm btn-outline-info">
+                        Lihat Semua
+                    </a>
+                </div>
+                <div class="card-panel__body p-0">
+                    <div class="activity-list">
+                        {% for log in recent_logs %}
+                        <div class="activity-item">
+                            <div class="activity-avatar">{{ log.user[0].upper() if log.user else 'S' }}</div>
+                            <div class="activity-content">
+                                <div class="activity-user">{{ log.user }}</div>
+                                <div class="activity-text">{{ log.activity }}</div>
+                            </div>
+                            <div class="activity-time">
+                                <i class="bi bi-clock me-1"></i>
+                                {{ log.created_at.strftime('%d %b %H:%M') if log.created_at else '-' }}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Belum ada aktivitas.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function statusBadge(status) {
+    if (status === 'hadir') return '<span class="badge bg-success">Hadir</span>';
+    if (status === 'terlambat') return '<span class="badge bg-warning text-dark">Terlambat</span>';
+    if (status === 'pulang') return '<span class="badge bg-info">Pulang</span>';
+    return '<span class="badge bg-danger">Belum Hadir</span>';
+}
+
+function timeBadge(value, isOut) {
+    if (!value) return '-';
+    const short = value.toString().substring(0, 5);
+    return `<span class="time-badge${isOut ? ' time-badge--out' : ''}">${short}</span>`;
+}
+
+function renderStatusTable(list) {
+    const tbody = document.getElementById('statusTableBody');
+    if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>Belum ada data pegawai.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = list.map(r => `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-placeholder">${r.nama ? r.nama[0].toUpperCase() : '?'}</div>
+                    <div>
+                        <div><strong>${r.nama || '-'}</strong></div>
+                        <div class="text-muted small">${r.nik || '-'}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${r.departemen || '-'}</td>
+            <td>${r.matkul_nama ? r.matkul_nama + (r.matkul_count > 1 ? ` <span class="badge bg-secondary ms-1">+${r.matkul_count - 1} lainnya</span>` : '') : '-'}</td>
+            <td>${timeBadge(r.jam_masuk, false)}</td>
+            <td>${statusBadge(r.status)}</td>
+        </tr>
+    `).join('');
+}
+
+function updateSummaryBars(summary) {
+    const total = summary.total_pegawai || 1;
+    const tepatWaktu = summary.hadir - summary.terlambat;
+
+    document.getElementById('statPegawai').textContent = summary.total_pegawai;
+    document.getElementById('statHadir').textContent = summary.hadir;
+    document.getElementById('statTerlambat').textContent = summary.terlambat;
+    document.getElementById('statBelum').textContent = summary.belum_hadir;
+
+    document.getElementById('sumTepatWaktu').textContent = tepatWaktu;
+    document.getElementById('sumTerlambat').textContent = summary.terlambat;
+    document.getElementById('sumBelum').textContent = summary.belum_hadir;
+
+    document.getElementById('barTepatWaktu').style.width = (tepatWaktu / total * 100) + '%';
+    document.getElementById('barTerlambat').style.width = (summary.terlambat / total * 100) + '%';
+    document.getElementById('barBelum').style.width = (summary.belum_hadir / total * 100) + '%';
+}
+
+async function refreshDashboard() {
+    try {
+        const res = await fetch('/absensi/api/dashboard');
+        const json = await res.json();
+        updateSummaryBars(json.summary);
+        renderStatusTable(json.today_list);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// Auto-refresh every 60s so status kehadiran selalu realtime
+setInterval(refreshDashboard, 60000);
+</script>
+{% endblock %}

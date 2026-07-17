@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Scan Absensi - VerifID{% endblock %}
+{% block page_title %}Scan Absensi{% endblock %}
+
+{% block content %}
+<div class="row g-4 justify-content-center">
+    <div class="col-xl-7">
+        <div class="card-panel">
+            <div class="card-panel__header">
+                <h5 class="card-panel__title">
+                    <i class="bi bi-qr-code-scan me-2 text-success"></i>
+                    Absensi Wajah
+                </h5>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge bg-danger" id="cameraIndicator">
+                        <i class="bi bi-record-circle-fill me-1"></i>LIVE
+                    </span>
+                </div>
+            </div>
+            <div class="card-panel__body">
+                <div class="camera-container attendance-camera">
+                    <video id="videoFeed" class="camera-video" autoplay muted playsinline></video>
+                    <canvas id="faceCanvas" class="camera-overlay"></canvas>
+
+                    <div class="scan-overlay">
+                        <div class="scan-frame">
+                            <div class="scan-corner tl"></div>
+                            <div class="scan-corner tr"></div>
+                            <div class="scan-corner bl"></div>
+                            <div class="scan-corner br"></div>
+                            <div class="scan-line" id="scanLine"></div>
+                        </div>
+                    </div>
+
+                    <div class="camera-status-bar" id="cameraStatusBar">
+                        <i class="bi bi-camera me-1"></i>
+                        <span id="statusText">Mengarahkan kamera...</span>
+                    </div>
+                </div>
+
+                <div class="camera-controls mt-3 text-center">
+                    <button class="btn btn-success btn-lg px-5" id="btnStartCam">
+                        <i class="bi bi-play-fill me-2"></i>Mulai Absensi
+                    </button>
+                    <button class="btn btn-danger btn-lg px-5 d-none" id="btnStopCam">
+                        <i class="bi bi-stop-fill me-2"></i>Hentikan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="col-xl-5">
+        <div class="card-panel h-100">
+            <div class="card-panel__header">
+                <h5 class="card-panel__title">
+                    <i class="bi bi-person-check-fill me-2 text-info"></i>
+                    Hasil Absensi
+                </h5>
+            </div>
+            <div class="card-panel__body" id="resultPanel">
+                <div class="text-center text-muted py-5" id="emptyResult">
+                    <div class="scan-icon-anim mb-3">
+                        <i class="bi bi-qr-code-scan fs-1"></i>
+                    </div>
+                    <p>Belum ada absensi terdeteksi.</p>
+                    <small>Klik "Mulai Absensi" dan hadapkan wajah ke kamera.</small>
+                </div>
+
+                <!-- Matkul Selection -->
+                <div id="matkulResult" class="d-none">
+                    <div class="attendance-result text-center">
+                        <div class="result-employee justify-content-center">
+                            <div class="result-avatar" id="matkulAvatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="result-info text-start">
+                                <h5 id="matkulNama">-</h5>
+                                <div class="result-meta">
+                                    <span><i class="bi bi-card-text me-1"></i><span id="matkulNik">-</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <p class="text-muted small mb-2 text-start">Pilih mata kuliah untuk absensi:</p>
+                        <select class="form-select form-select-lg mb-3" id="matkulSelect">
+                            <option value="">-- Pilih Mata Kuliah --</option>
+                        </select>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary flex-fill" id="btnBatalMatkul">
+                                <i class="bi bi-x-lg me-1"></i>Batal
+                            </button>
+                            <button class="btn btn-primary flex-fill" id="btnKonfirmasiMatkul">
+                                <i class="bi bi-check-lg me-1"></i>Konfirmasi Absen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Result -->
+                <div id="successResult" class="d-none">
+                    <div class="attendance-result attendance-result--success">
+                        <div class="result-employee">
+                            <div class="result-avatar" id="resultAvatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="result-info">
+                                <h5 id="resultNama">-</h5>
+                                <div class="result-meta">
+                                    <span><i class="bi bi-card-text me-1"></i><span id="resultNik">-</span></span>
+                                    <span><i class="bi bi-building me-1"></i><span id="resultDept">-</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-details">
+                            <div class="result-detail-item">
+                                <i class="bi bi-clock-fill text-primary"></i>
+                                <div>
+                                    <small class="text-muted">Jam</small>
+                                    <div id="resultJam" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                            <div class="result-detail-item">
+                                <i class="bi bi-shield-check text-success"></i>
+                                <div>
+                                    <small class="text-muted">Confidence</small>
+                                    <div id="resultConfidence" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                            <div class="result-detail-item">
+                                <i class="bi bi-info-circle text-info"></i>
+                                <div>
+                                    <small class="text-muted">Status</small>
+                                    <div id="resultStatus" class="fw-bold">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-message text-success" id="resultMessage"></div>
+                    </div>
+                </div>
+
+                <!-- Error Result -->
+                <div id="errorResult" class="d-none">
+                    <div class="attendance-result attendance-result--error">
+                        <div class="error-icon">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </div>
+                        <h5 id="errorTitle">Wajah Tidak Dikenali</h5>
+                        <p id="errorMessage" class="text-muted"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance Log -->
+        <div class="card-panel mt-4">
+            <div class="card-panel__header">
+                <h6 class="card-panel__title">
+                    <i class="bi bi-list-check me-2"></i>Log Hari Ini
+                </h6>
+            </div>
+            <div class="card-panel__body p-0">
+                <div id="todayLog" class="attendance-log-list">
+                    <div class="text-center text-muted py-3 small" id="emptyLog">Belum ada absensi hari ini.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+{% endblock %}

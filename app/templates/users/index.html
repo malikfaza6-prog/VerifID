@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Manajemen User - VerifID{% endblock %}
+{% block page_title %}Manajemen User{% endblock %}
+
+{% block content %}
+<div class="page-actions mb-4">
+    <button class="btn btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#modalUser">
+        <i class="bi bi-person-plus-fill me-2"></i>Tambah User
+    </button>
+</div>
+
+<div class="card-panel">
+    <div class="card-panel__header">
+        <h5 class="card-panel__title">
+            <i class="bi bi-shield-lock-fill me-2 text-warning"></i>
+            Daftar User
+            <span class="badge bg-warning text-dark ms-2">{{ users | length }}</span>
+        </h5>
+    </div>
+    <div class="card-panel__body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Dibuat</th>
+                        <th width="120">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm-circle">{{ user.username[0].upper() }}</div>
+                                <strong>{{ user.username }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-role-{{ user.role }}">
+                                <i class="bi bi-{% if user.role == 'admin' %}shield-fill{% elif user.role == 'kelas' %}display-fill{% else %}person-fill{% endif %} me-1"></i>
+                                {{ user.role | title }}{% if user.role == 'kelas' and user.kelas %} - {{ user.kelas }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Aktif</span>
+                            {% else %}
+                                <span class="badge bg-danger">Nonaktif</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%d %b %Y') if user.created_at else '-' }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary btn-icon" onclick="editUser({{ user.id }})" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-icon" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add/Edit User -->
+<div class="modal fade" id="modalUser" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalTitle">
+                    <i class="bi bi-person-plus-fill me-2"></i>Tambah User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="userForm">
+                <div class="modal-body">
+                    <input type="hidden" id="userId">
+                    <div class="mb-3">
+                        <label class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="userUsername" placeholder="Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password <span class="text-danger" id="pwdRequired">*</span></label>
+                        <input type="password" class="form-control" id="userPassword" placeholder="Password (min. 6 karakter)">
+                        <small class="text-muted" id="pwdHint"></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <select class="form-select" id="userRole">
+                            <option value="operator">Operator</option>
+                            <option value="admin">Admin</option>
+                            <option value="kelas">Kelas (Kiosk)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="kelasGroup">
+                        <label class="form-label">Kelas / Prodi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="userKelas" placeholder="Contoh: FTI">
+                        <small class="text-muted">Kode ini menentukan mahasiswa mana saja yang bisa dikenali di kiosk saat login dengan akun ini. Harus sama dengan field "Kelas/Prodi" pada data mahasiswa.</small>
+                    </div>
+                    <div class="mb-3" id="statusGroup">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="userIsActive">
+                            <option value="1">Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="modalDeleteUser" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Hapus User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Hapus user <strong id="deleteUserName"></strong>?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-danger" id="confirmDeleteUser">Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

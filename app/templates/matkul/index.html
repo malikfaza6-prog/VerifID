@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Mata Kuliah - VerifID{% endblock %}
+{% block page_title %}Mata Kuliah{% endblock %}
+
+{% block content %}
+<div class="page-actions mb-4">
+    <button class="btn btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#modalMatkul">
+        <i class="bi bi-plus-lg me-2"></i>Tambah Mata Kuliah
+    </button>
+</div>
+
+<div class="card-panel">
+    <div class="card-panel__header">
+        <h5 class="card-panel__title">
+            <i class="bi bi-journal-bookmark-fill me-2 text-primary"></i>
+            Daftar Mata Kuliah
+            <span class="badge bg-primary ms-2">{{ items | length }}</span>
+        </h5>
+    </div>
+    <div class="card-panel__body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Kode</th>
+                        <th>Nama Mata Kuliah</th>
+                        <th width="120">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in items %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><span class="badge bg-secondary">{{ m.kode }}</span></td>
+                        <td>{{ m.nama }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editMatkul({{ m.id }})" title="Edit">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMatkul({{ m.id }}, '{{ m.nama|e }}')" title="Hapus">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Belum ada mata kuliah. Tambahkan lewat tombol di atas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah/Edit -->
+<div class="modal fade" id="modalMatkul" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="matkulForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="matkulModalTitle">
+                        <i class="bi bi-plus-lg me-2"></i>Tambah Mata Kuliah
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="matkulId">
+                    <div class="mb-3">
+                        <label class="form-label">Kode Mata Kuliah <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="matkulKode" placeholder="Contoh: IF101" required maxlength="20">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Mata Kuliah <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="matkulNama" placeholder="Contoh: Algoritma dan Pemrograman" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Delete Confirm -->
+<div class="modal fade" id="modalDeleteMatkul" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Yakin ingin menghapus mata kuliah <strong id="deleteMatkulName"></strong>? Riwayat absensi untuk matkul ini akan tetap tersimpan (matkul akan tampil sebagai kosong).
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteMatkul">
+                    <i class="bi bi-trash-fill me-1"></i>Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/matkul.js') }}"></script>
+{% endblock %}
