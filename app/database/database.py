@@ -69,8 +69,9 @@ def init_db() -> None:
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(50) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
-                role ENUM('admin', 'operator', 'kelas') NOT NULL DEFAULT 'operator',
+                role ENUM('admin', 'operator', 'kelas', 'dosen') NOT NULL DEFAULT 'operator',
                 kelas VARCHAR(50) DEFAULT NULL,
+                matkul_id INT DEFAULT NULL,
                 is_active TINYINT(1) NOT NULL DEFAULT 1,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

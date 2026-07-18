@@ -20,6 +20,77 @@ class AttendanceService:
         self._att_repo = AttendanceRepository()
         self._emp_repo = EmployeeRepository()
 
+    def get_matkul_attendance(
+        self,
+        matkul_id: int,
+        search: str = "",
+        tanggal_from: Optional[str] = None,
+        tanggal_to: Optional[str] = None,
+        page: int = 1,
+        per_page: int = 15,
+    ) -> Dict[str, Any]:
+        """Riwayat absensi untuk satu matkul (dipakai dosen)."""
+        records, total = self._att_repo.find_by_matkul_paginated(
+            matkul_id, search, tanggal_from, tanggal_to, page, per_page
+        )
+        return {
+            "data": [r.to_dict() for r in records],
+            "meta": paginate(total, page, per_page),
+        }
+
+    def update_attendance_manual(
+        self, att_id: int, matkul_id: int, status: str, jam_masuk: str
+    ) -> Tuple[bool, str]:
+        """Dosen mengoreksi status/jam kehadiran - hanya utk record di matkulnya sendiri."""
+        att = self._att_repo.find_by_id(att_id)
+        if not att:
+            return False, "Data absensi tidak ditemukan."
+        if att.matkul_id != matkul_id:
+            return False, "Anda tidak memiliki akses untuk mengubah absensi ini."
+        if status not in ("hadir", "terlambat", "pulang"):
+            return False, "Status tidak valid."
+        try:
+            self._att_repo.update_manual(att_id, status, jam_masuk or None)
+            logger.info(f"Absensi ID={att_id} dikoreksi manual jadi status={status}")
+            return True, "Absensi berhasil diperbarui."
+        except Exception as e:
+            logger.error(f"Update manual attendance error: {e}")
+            return False, "Gagal memperbarui absensi."
+
+    def add_manual_attendance(
+        self, matkul_id: int, pegawai_id: int, tanggal: str, jam_masuk: str, status: str
+    ) -> Tuple[bool, str]:
+        """Dosen menambahkan absensi manual untuk mahasiswa yang tidak sempat scan."""
+        if status not in ("hadir", "terlambat", "pulang"):
+            return False, "Status tidak valid."
+
+        try:
+            tgl = datetime.strptime(tanggal, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return False, "Tanggal tidak valid."
+
+        existing = self._att_repo.find_today_by_employee_matkul(pegawai_id, tgl, matkul_id)
+        if existing:
+            return False, "Mahasiswa ini sudah memiliki absensi untuk mata kuliah & tanggal tersebut."
+
+        att = Attendance(
+            pegawai_id=pegawai_id,
+            matkul_id=matkul_id,
+            tanggal=tgl,
+            jam_masuk=jam_masuk or None,
+            confidence=None,
+            status=status,
+            device="manual-dosen",
+        )
+        try:
+            att_id = self._att_repo.create(att)
+            att.id = att_id
+            logger.info(f"Absensi manual ditambahkan dosen: pegawai_id={pegawai_id}, matkul_id={matkul_id}")
+            return True, "Absensi manual berhasil ditambahkan."
+        except Exception as e:
+            logger.error(f"Add manual attendance error: {e}")
+            return False, "Gagal menambahkan absensi manual."
+
     def record_attendance(
         self,
         pegawai_id: int,

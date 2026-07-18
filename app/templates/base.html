@@ -33,6 +33,7 @@
     </div>
 
     <div class="sidebar-nav">
+        {% if current_role in ['admin', 'operator'] %}
         <div class="nav-section">
             <span class="nav-label">UTAMA</span>
             <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
@@ -64,6 +65,17 @@
                 <span>Riwayat Absensi</span>
             </a>
         </div>
+        {% endif %}
+
+        {% if current_role == 'dosen' %}
+        <div class="nav-section">
+            <span class="nav-label">DOSEN</span>
+            <a href="{{ url_for('dosen.index') }}" class="nav-item {% if request.endpoint and 'dosen' in request.endpoint %}active{% endif %}">
+                <i class="bi bi-journal-check"></i>
+                <span>Absensi Saya</span>
+            </a>
+        </div>
+        {% endif %}
 
         {% if current_role == 'admin' %}
         <div class="nav-section">

@@ -55,6 +55,7 @@ def create_app() -> Flask:
     from app.routes.attendance import attendance_bp
     from app.routes.users import user_bp
     from app.routes.matkul import matkul_bp
+    from app.routes.dosen import dosen_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -63,6 +64,7 @@ def create_app() -> Flask:
     app.register_blueprint(attendance_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(matkul_bp)
+    app.register_blueprint(dosen_bp)
 
     # Context processors
     @app.context_processor

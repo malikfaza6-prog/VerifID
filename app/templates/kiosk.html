@@ -139,8 +139,9 @@
                         <h5 class="card-panel__title mb-0">
                             <i class="bi bi-person-check-fill me-2 text-info"></i> Hasil Scan
                         </h5>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-outline-light">kembali<i
-                                class="bi bi-arrow-left me-1"></i></a>
+                        <button onclick="keluarKeLogin()" class="btn btn-sm btn-outline-light">
+                            <i class="bi bi-arrow-left me-1"></i> Kembali
+                        </button>
                     </div>
                     <div class="card-panel__body" id="resultPanel">
 
@@ -238,7 +239,29 @@
                     class="bi bi-box-arrow-right me-1"></i>Logout Terminal</a>
         </div>
     </div>
+    <script>
+        function keluarKeLogin() {
+            window.location.href = "{{ url_for('auth.login') }}";
+        } function keluarKeLogin() {
+            // 1. Matikan kamera secara paksa
+            const video = document.getElementById('videoFeed');
+            if (video && video.srcObject) {
+                const stream = video.srcObject;
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop()); // Memutus akses kamera
+                video.srcObject = null;
+            }
 
+            // 2. Berhenti melakukan scanning (stop interval)
+            if (typeof stopScanning === 'function') {
+                stopScanning();
+            }
+
+            // 3. Pindah ke halaman login
+            // Menggunakan window.location.href agar memaksa browser pindah
+            window.location.href = "{{ url_for('auth.login') }}";
+        }
+    </script>
     <script>
         // Live Clock
         setInterval(() => {

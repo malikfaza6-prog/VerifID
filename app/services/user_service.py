@@ -33,11 +33,18 @@ class UserManagementService:
         if existing:
             return None, f"Username '{data['username']}' sudah digunakan."
 
+        matkul_id = self._parse_matkul_id(data)
+        if data["role"] == "dosen" and matkul_id:
+            dosen_lain = self._repo.find_by_matkul_id(matkul_id)
+            if dosen_lain:
+                return None, f"Mata kuliah ini sudah diampu oleh dosen '{dosen_lain.username}'."
+
         user = User(
             username=data["username"].strip(),
             password_hash=hash_password(data["password"]),
             role=data["role"],
             kelas=(data.get("kelas") or "").strip() or None,
+            matkul_id=matkul_id if data["role"] == "dosen" else None,
         )
         try:
             new_id = self._repo.create(user)
@@ -61,9 +68,16 @@ class UserManagementService:
         if existing and existing.id != user_id:
             return False, f"Username '{data['username']}' sudah digunakan."
 
+        matkul_id = self._parse_matkul_id(data)
+        if data["role"] == "dosen" and matkul_id:
+            dosen_lain = self._repo.find_by_matkul_id(matkul_id)
+            if dosen_lain and dosen_lain.id != user_id:
+                return False, f"Mata kuliah ini sudah diampu oleh dosen '{dosen_lain.username}'."
+
         user.username = data["username"].strip()
         user.role = data["role"]
         user.kelas = (data.get("kelas") or "").strip() or None
+        user.matkul_id = matkul_id if data["role"] == "dosen" else None
         user.is_active = int(data.get("is_active", 1))
         if data.get("password"):
             user.password_hash = hash_password(data["password"])
@@ -86,3 +100,13 @@ class UserManagementService:
         except Exception as e:
             logger.error(f"Delete user error: {e}")
             return False, "Gagal menghapus user."
+
+    @staticmethod
+    def _parse_matkul_id(data: dict) -> Optional[int]:
+        raw = data.get("matkul_id")
+        if raw in (None, "", "null"):
+            return None
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            return None

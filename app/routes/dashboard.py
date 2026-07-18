@@ -16,14 +16,19 @@ auth_service = AuthService()
 @dashboard_bp.route("/")
 @login_required
 def root():
-    if session.get(SESSION_ROLE) == "admin":
+    role = session.get(SESSION_ROLE)
+    if role == "admin":
         return redirect(url_for("dashboard.index"))
+    if role == "dosen":
+        return redirect(url_for("dosen.index"))
     return render_template("kiosk.html")
 
 
 @dashboard_bp.route("/dashboard")
 @login_required
 def index():
+    if session.get(SESSION_ROLE) == "dosen":
+        return redirect(url_for("dosen.index"))
     summary = att_service.get_today_summary()
     today_list = att_service.get_today_attendance_list()
     recent_logs = auth_service.get_recent_logs(limit=8)

@@ -13,6 +13,95 @@ logger = logging.getLogger(__name__)
 class AttendanceRepository:
     """Repository for Attendance CRUD operations."""
 
+    def find_by_id(self, att_id: int) -> Optional[Attendance]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """SELECT a.*, p.nama, p.nik, p.departemen, p.foto,
+                          m.nama AS matkul_nama, m.kode AS matkul_kode
+                   FROM attendance a
+                   JOIN pegawai p ON p.id = a.pegawai_id
+                   LEFT JOIN matkul m ON m.id = a.matkul_id
+                   WHERE a.id = %s""",
+                (att_id,),
+            )
+            row = cursor.fetchone()
+            return Attendance.from_dict(row) if row else None
+        finally:
+            cursor.close()
+            conn.close()
+
+    def find_by_matkul_paginated(
+        self,
+        matkul_id: int,
+        search: str = "",
+        tanggal_from: Optional[str] = None,
+        tanggal_to: Optional[str] = None,
+        page: int = 1,
+        per_page: int = 15,
+    ) -> Tuple[List[Attendance], int]:
+        """Riwayat absensi khusus untuk satu matkul (dipakai halaman dosen)."""
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            offset = (page - 1) * per_page
+            params = [matkul_id]
+            conditions = ["a.matkul_id = %s"]
+
+            if search:
+                conditions.append("(p.nama LIKE %s OR p.nik LIKE %s)")
+                params += [f"%{search}%", f"%{search}%"]
+            if tanggal_from:
+                conditions.append("a.tanggal >= %s")
+                params.append(tanggal_from)
+            if tanggal_to:
+                conditions.append("a.tanggal <= %s")
+                params.append(tanggal_to)
+
+            where_clause = " AND ".join(conditions)
+
+            cursor.execute(
+                f"SELECT COUNT(*) AS total FROM attendance a JOIN pegawai p ON p.id = a.pegawai_id WHERE {where_clause}",
+                params,
+            )
+            total = cursor.fetchone()["total"]
+
+            cursor.execute(
+                f"""SELECT a.*, p.nama, p.nik, p.departemen, p.foto,
+                           m.nama AS matkul_nama, m.kode AS matkul_kode
+                    FROM attendance a
+                    JOIN pegawai p ON p.id = a.pegawai_id
+                    LEFT JOIN matkul m ON m.id = a.matkul_id
+                    WHERE {where_clause}
+                    ORDER BY a.tanggal DESC, a.jam_masuk DESC
+                    LIMIT %s OFFSET %s""",
+                params + [per_page, offset],
+            )
+            rows = cursor.fetchall()
+            return [Attendance.from_dict(r) for r in rows], total
+        finally:
+            cursor.close()
+            conn.close()
+
+    def update_manual(self, att_id: int, status: str, jam_masuk: Optional[str]) -> bool:
+        """Dosen mengoreksi status/jam kehadiran secara manual."""
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE attendance SET status=%s, jam_masuk=%s WHERE id=%s",
+                (status, jam_masuk, att_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
     def find_today_by_employee_matkul(self, pegawai_id: int, today: date, matkul_id: int) -> Optional[Attendance]:
         """Check whether the student has already absen for this matkul today."""
         conn = get_connection()

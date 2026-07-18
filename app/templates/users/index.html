@@ -42,8 +42,8 @@
                         </td>
                         <td>
                             <span class="badge badge-role-{{ user.role }}">
-                                <i class="bi bi-{% if user.role == 'admin' %}shield-fill{% elif user.role == 'kelas' %}display-fill{% else %}person-fill{% endif %} me-1"></i>
-                                {{ user.role | title }}{% if user.role == 'kelas' and user.kelas %} - {{ user.kelas }}{% endif %}
+                                <i class="bi bi-{% if user.role == 'admin' %}shield-fill{% elif user.role == 'kelas' %}display-fill{% elif user.role == 'dosen' %}mortarboard-fill{% else %}person-fill{% endif %} me-1"></i>
+                                {{ user.role | title }}{% if user.role == 'kelas' and user.kelas %} - {{ user.kelas }}{% endif %}{% if user.role == 'dosen' and user.matkul_nama %} - {{ user.matkul_nama }}{% endif %}
                             </span>
                         </td>
                         <td>
@@ -100,12 +100,20 @@
                             <option value="operator">Operator</option>
                             <option value="admin">Admin</option>
                             <option value="kelas">Kelas (Kiosk)</option>
+                            <option value="dosen">Dosen</option>
                         </select>
                     </div>
                     <div class="mb-3 d-none" id="kelasGroup">
                         <label class="form-label">Kelas / Prodi <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="userKelas" placeholder="Contoh: FTI">
                         <small class="text-muted">Kode ini menentukan mahasiswa mana saja yang bisa dikenali di kiosk saat login dengan akun ini. Harus sama dengan field "Kelas/Prodi" pada data mahasiswa.</small>
+                    </div>
+                    <div class="mb-3 d-none" id="matkulGroup">
+                        <label class="form-label">Mata Kuliah yang Diampu <span class="text-danger">*</span></label>
+                        <select class="form-select" id="userMatkul">
+                            <option value="">-- Pilih Mata Kuliah --</option>
+                        </select>
+                        <small class="text-muted">1 dosen hanya bisa mengampu 1 mata kuliah. Dosen hanya bisa melihat & mengoreksi absensi untuk matkul ini.</small>
                     </div>
                     <div class="mb-3" id="statusGroup">
                         <label class="form-label">Status</label>

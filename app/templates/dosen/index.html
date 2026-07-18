@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Absensi Saya - VerifID{% endblock %}
+{% block page_title %}Absensi Mata Kuliah Saya{% endblock %}
+
+{% block content %}
+<div class="card-panel mb-4">
+    <div class="card-panel__body d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h4 class="mb-1"><i class="bi bi-journal-check text-primary me-2"></i>{{ matkul.nama if matkul else '-' }}</h4>
+            <span class="badge bg-secondary">{{ matkul.kode if matkul else '-' }}</span>
+        </div>
+        <button class="btn btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#modalTambahAbsen">
+            <i class="bi bi-plus-lg me-2"></i>Tambah Absensi Manual
+        </button>
+    </div>
+</div>
+
+<div class="card-panel mb-4">
+    <div class="card-panel__body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Cari Nama/NIK</label>
+                <input type="text" class="form-control" id="filterSearch" placeholder="Cari mahasiswa...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Dari Tanggal</label>
+                <input type="date" class="form-control" id="filterFrom">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Sampai Tanggal</label>
+                <input type="date" class="form-control" id="filterTo">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-primary w-100" id="btnFilter"><i class="bi bi-search me-1"></i>Filter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-panel">
+    <div class="card-panel__header">
+        <h5 class="card-panel__title">
+            <i class="bi bi-table me-2 text-primary"></i>Riwayat Absensi
+        </h5>
+    </div>
+    <div class="card-panel__body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>Mahasiswa</th>
+                        <th>Kelas/Prodi</th>
+                        <th>Tanggal</th>
+                        <th>Jam</th>
+                        <th>Status</th>
+                        <th width="90">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="attTableBody">
+                    <tr><td colspan="6" class="text-center text-muted py-5">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-panel__footer d-flex justify-content-between align-items-center p-3">
+        <span class="text-muted small" id="paginationInfo"></span>
+        <div id="paginationControls"></div>
+    </div>
+</div>
+
+<!-- Modal Edit Absensi -->
+<div class="modal fade" id="modalEditAbsen" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editAbsenForm">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Koreksi Absensi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editAttId">
+                    <p class="mb-3"><strong id="editAttNama"></strong> <span class="text-muted" id="editAttNik"></span></p>
+                    <div class="mb-3">
+                        <label class="form-label">Jam Masuk</label>
+                        <input type="time" step="1" class="form-control" id="editJamMasuk">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="editStatus">
+                            <option value="hadir">Hadir</option>
+                            <option value="terlambat">Terlambat</option>
+                            <option value="pulang">Pulang</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Absensi Manual -->
+<div class="modal fade" id="modalTambahAbsen" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="tambahAbsenForm">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-lg me-2"></i>Tambah Absensi Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cari Mahasiswa <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control mb-2" id="cariMahasiswa" placeholder="Ketik nama atau NIK...">
+                        <select class="form-select" id="pilihMahasiswa" size="5" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="tambahTanggal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jam Masuk</label>
+                        <input type="time" step="1" class="form-control" id="tambahJam">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="tambahStatus">
+                            <option value="hadir">Hadir</option>
+                            <option value="terlambat">Terlambat</option>
+                            <option value="pulang">Pulang</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dosen.js') }}"></script>
+{% endblock %}

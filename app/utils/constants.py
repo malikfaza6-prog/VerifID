@@ -16,12 +16,14 @@ LATE_THRESHOLD_MINUTE = 15  # minutes after WORK_START to be considered late
 ROLE_ADMIN = "admin"
 ROLE_OPERATOR = "operator"
 ROLE_KELAS = "kelas"
+ROLE_DOSEN = "dosen"
 
 # Session keys
 SESSION_USER_ID = "user_id"
 SESSION_USERNAME = "username"
 SESSION_ROLE = "role"
 SESSION_KELAS = "kelas"
+SESSION_MATKUL_ID = "matkul_id"
 
 # Pagination
 DEFAULT_PER_PAGE = 10

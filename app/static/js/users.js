@@ -5,6 +5,24 @@
 const modalUser = new bootstrap.Modal(document.getElementById('modalUser'));
 const modalDeleteUser = new bootstrap.Modal(document.getElementById('modalDeleteUser'));
 let deleteUserId = null;
+let matkulOptionsCache = [];
+
+// ---- Muat daftar mata kuliah utk dropdown role Dosen ----
+async function loadMatkulOptionsForUserForm() {
+    try {
+        const res = await fetch('/matkul/api');
+        const json = await res.json();
+        if (json.success) {
+            matkulOptionsCache = json.data;
+            const select = document.getElementById('userMatkul');
+            select.innerHTML = '<option value="">-- Pilih Mata Kuliah --</option>' +
+                matkulOptionsCache.map(m => `<option value="${m.id}">${m.kode} - ${m.nama}</option>`).join('');
+        }
+    } catch (e) {
+        console.error('Gagal memuat daftar matkul:', e);
+    }
+}
+loadMatkulOptionsForUserForm();
 
 // ---- Open Add Modal ----
 document.querySelector('[data-bs-target="#modalUser"]').addEventListener('click', () => {
@@ -15,15 +33,13 @@ document.querySelector('[data-bs-target="#modalUser"]').addEventListener('click'
     toggleKelasField();
 });
 
-// ---- Toggle Kelas field berdasarkan role yang dipilih ----
+// ---- Toggle Kelas/Matkul field berdasarkan role yang dipilih ----
 function toggleKelasField() {
     const role = document.getElementById('userRole').value;
     const kelasGroup = document.getElementById('kelasGroup');
-    if (role === 'kelas') {
-        kelasGroup.classList.remove('d-none');
-    } else {
-        kelasGroup.classList.add('d-none');
-    }
+    const matkulGroup = document.getElementById('matkulGroup');
+    kelasGroup.classList.toggle('d-none', role !== 'kelas');
+    matkulGroup.classList.toggle('d-none', role !== 'dosen');
 }
 document.getElementById('userRole').addEventListener('change', toggleKelasField);
 
@@ -42,6 +58,7 @@ async function editUser(id) {
     document.getElementById('userRole').value = u.role;
     document.getElementById('userIsActive').value = u.is_active;
     document.getElementById('userKelas').value = u.kelas || '';
+    document.getElementById('userMatkul').value = u.matkul_id || '';
     toggleKelasField();
     
     document.getElementById('userModalTitle').innerHTML = '<i class="bi bi-pencil-fill me-2"></i>Edit User';
@@ -69,6 +86,7 @@ document.getElementById('userForm').addEventListener('submit', async function(e)
         role: document.getElementById('userRole').value,
         is_active: document.getElementById('userIsActive').value,
         kelas: document.getElementById('userKelas').value,
+        matkul_id: document.getElementById('userMatkul').value,
     };
     if (pwd) payload.password = pwd;
 

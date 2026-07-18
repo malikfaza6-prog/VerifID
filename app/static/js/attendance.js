@@ -270,7 +270,7 @@ function showError(data) {
         if (titleEl) titleEl.textContent = 'Harap Tunggu';
         if (msgEl) msgEl.textContent = data.message;
         if (data.employee && data.employee.nama && msgEl) {
-             msgEl.textContent = `Absensi ${data.employee.nama} telah tercatat. Tunggu beberapa saat.`;
+            msgEl.textContent = `Absensi ${data.employee.nama} telah tercatat. Tunggu beberapa saat.`;
         }
     } else if (data.status === 'unknown') {
         if (titleEl) titleEl.textContent = 'Wajah Tidak Dikenali';

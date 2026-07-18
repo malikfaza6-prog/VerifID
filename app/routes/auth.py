@@ -3,7 +3,7 @@ Auth routes - login, logout endpoints.
 """
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
 from app.services.auth_service import AuthService
-from app.utils.constants import SESSION_USER_ID, SESSION_USERNAME, SESSION_ROLE, SESSION_KELAS
+from app.utils.constants import SESSION_USER_ID, SESSION_USERNAME, SESSION_ROLE, SESSION_KELAS, SESSION_MATKUL_ID
 
 auth_bp = Blueprint("auth", __name__)
 auth_service = AuthService()
@@ -33,6 +33,7 @@ def login():
     session[SESSION_USERNAME] = user.username
     session[SESSION_ROLE] = user.role
     session[SESSION_KELAS] = user.kelas or ""
+    session[SESSION_MATKUL_ID] = user.matkul_id
     session.permanent = False
 
     ip = request.remote_addr or ""

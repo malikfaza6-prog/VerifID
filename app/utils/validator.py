@@ -29,6 +29,7 @@ def validate_user(data: dict, is_create: bool = True) -> Tuple[bool, str]:
     password = data.get("password", "")
     role = data.get("role", "")
     kelas = data.get("kelas", "").strip() if data.get("kelas") else ""
+    matkul_id = data.get("matkul_id")
 
     if not username:
         return False, "Username tidak boleh kosong."
@@ -38,10 +39,12 @@ def validate_user(data: dict, is_create: bool = True) -> Tuple[bool, str]:
         return False, "Password tidak boleh kosong."
     if password and len(password) < 6:
         return False, "Password minimal 6 karakter."
-    if role not in ("admin", "operator", "kelas"):
+    if role not in ("admin", "operator", "kelas", "dosen"):
         return False, "Role tidak valid."
     if role == "kelas" and not kelas:
         return False, "Kelas/Prodi wajib diisi untuk akun bertipe Kelas."
+    if role == "dosen" and not matkul_id:
+        return False, "Mata kuliah wajib dipilih untuk akun bertipe Dosen."
     return True, ""
 
 

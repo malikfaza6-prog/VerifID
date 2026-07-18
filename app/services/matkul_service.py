@@ -6,6 +6,7 @@ from typing import Optional, Tuple, List
 
 from app.models.matkul import Matkul
 from app.repositories.matkul_repository import MatkulRepository
+from app.repositories.user_repository import UserRepository
 from app.utils.validator import validate_matkul
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class MatkulService:
 
     def __init__(self):
         self._repo = MatkulRepository()
+        self._user_repo = UserRepository()
 
     def get_all(self) -> List[Matkul]:
         return self._repo.find_all()
@@ -65,6 +67,7 @@ class MatkulService:
 
     def delete(self, matkul_id: int) -> Tuple[bool, str]:
         try:
+            self._user_repo.clear_matkul_assignment(matkul_id)
             success = self._repo.delete(matkul_id)
             return success, ""
         except Exception as e:
