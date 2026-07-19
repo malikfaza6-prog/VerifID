@@ -7,6 +7,7 @@ from flask import Flask, session
 from flask_session import Session
 from config import get_config
 
+
 cfg = get_config()
 
 # Configure logging
