@@ -6,7 +6,6 @@ from datetime import date
 from io import BytesIO
 
 from flask import Blueprint, request, jsonify, render_template, send_file, flash, redirect, url_for
-from flask import redirect, url_for # Pastikan import ini ada
 from app.middleware.auth import login_required, get_current_username, get_current_kelas
 from app.services.attendance_service import AttendanceService
 from app.services.recognition_service import RecognitionService
@@ -14,7 +13,6 @@ from app.services.auth_service import AuthService
 from app.services.matkul_service import MatkulService
 from app.utils.image_utils import base64_to_numpy
 from app.utils.constants import DEFAULT_DEPARTMENTS
-from flask_login import current_user
 
 attendance_bp = Blueprint("attendance", __name__, url_prefix="/absensi")
 att_service = AttendanceService()
@@ -23,16 +21,10 @@ auth_service = AuthService()
 matkul_service = MatkulService()
 
 
-
-
 @attendance_bp.route("/")
+@login_required
 def index():
-    # Jika user sudah login, arahkan ke halaman scan
-    if current_user.is_authenticated:
-        return render_template("attendance/scan.html", title="Absensi Wajah")
-    
-    # Jika user belum login, arahkan paksa ke halaman login
-    return redirect(url_for('auth.login'))
+    return render_template("attendance/scan.html", title="Absensi Wajah")
 
 
 @attendance_bp.route("/riwayat")
