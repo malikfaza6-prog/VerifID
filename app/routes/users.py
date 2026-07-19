@@ -6,6 +6,7 @@ from flask import Blueprint, request, jsonify, render_template, flash, redirect,
 from app.middleware.auth import admin_required, get_current_user_id
 from app.services.user_service import UserManagementService
 from app.services.auth_service import AuthService
+from app.utils.constants import DEFAULT_DEPARTMENTS
 
 user_bp = Blueprint("users", __name__, url_prefix="/users")
 user_service = UserManagementService()
@@ -16,7 +17,9 @@ auth_service = AuthService()
 @admin_required
 def index():
     users = user_service.get_all()
-    return render_template("users/index.html", users=users, title="Manajemen User")
+    return render_template(
+        "users/index.html", users=users, departments=DEFAULT_DEPARTMENTS, title="Manajemen User"
+    )
 
 
 @user_bp.route("/api", methods=["GET"])

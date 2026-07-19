@@ -146,14 +146,13 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Kelas / Prodi</label>
-                            <input type="text" class="form-control" id="empDepartemen" name="departemen"
-                                   placeholder="Contoh: FTI, FEB, FH" list="daftarKelas">
-                            <datalist id="daftarKelas">
+                            <select class="form-select" id="empDepartemen" name="departemen">
+                                <option value="" selected disabled>-- Pilih Kelas/Prodi --</option>
                                 {% for dept in departments %}
-                                <option value="{{ dept }}">
+                                <option value="{{ dept }}">{{ dept }}</option>
                                 {% endfor %}
-                            </datalist>
-                            <small class="text-muted">Kode ini harus SAMA dengan field "Kelas/Prodi" pada akun login kelas, agar mahasiswa terbaca di kiosk yang sesuai.</small>
+                            </select>
+                            <small class="text-muted">Harus SAMA dengan field "Kelas/Prodi" pada akun login kelas, agar mahasiswa terbaca di kiosk yang sesuai.</small>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Jabatan</label>

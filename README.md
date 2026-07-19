@@ -51,7 +51,7 @@ Aplikasi ini sudah dilengkapi auto-migration. Saat aplikasi berjalan pertama kal
 ```bash
 flask run --debug
 # atau
-python app.py
+python run.py
 ```
 Akses di browser melalui: `http://localhost:5000`
 

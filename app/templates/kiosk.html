@@ -241,8 +241,6 @@
     </div>
     <script>
         function keluarKeLogin() {
-            window.location.href = "{{ url_for('auth.login') }}";
-        } function keluarKeLogin() {
             // 1. Matikan kamera secara paksa
             const video = document.getElementById('videoFeed');
             if (video && video.srcObject) {
@@ -257,9 +255,10 @@
                 stopScanning();
             }
 
-            // 3. Pindah ke halaman login
-            // Menggunakan window.location.href agar memaksa browser pindah
-            window.location.href = "{{ url_for('auth.login') }}";
+            // 3. Logout dulu (hapus sesi), baru pindah ke halaman login.
+            // Kalau langsung ke /login tanpa logout, sesi kiosk masih aktif
+            // sehingga /login akan melempar balik ke halaman kiosk ini lagi.
+            window.location.href = "{{ url_for('auth.logout') }}";
         }
     </script>
     <script>

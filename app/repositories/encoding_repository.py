@@ -41,7 +41,7 @@ class EncodingRepository:
                        WHERE p.status = 'aktif'"""
             params: tuple = ()
             if kelas:
-                query += " AND p.departemen = %s"
+                query += " AND TRIM(LOWER(p.departemen)) = TRIM(LOWER(%s))"
                 params = (kelas,)
             cursor.execute(query, params)
             rows = cursor.fetchall()

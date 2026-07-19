@@ -105,8 +105,13 @@
                     </div>
                     <div class="mb-3 d-none" id="kelasGroup">
                         <label class="form-label">Kelas / Prodi <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="userKelas" placeholder="Contoh: FTI">
-                        <small class="text-muted">Kode ini menentukan mahasiswa mana saja yang bisa dikenali di kiosk saat login dengan akun ini. Harus sama dengan field "Kelas/Prodi" pada data mahasiswa.</small>
+                        <select class="form-select" id="userKelas">
+                            <option value="" selected disabled>-- Pilih Kelas/Prodi --</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept }}">{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Menentukan mahasiswa mana saja yang bisa dikenali di kiosk saat login dengan akun ini. Harus sama dengan field "Kelas/Prodi" pada data mahasiswa.</small>
                     </div>
                     <div class="mb-3 d-none" id="matkulGroup">
                         <label class="form-label">Mata Kuliah yang Diampu <span class="text-danger">*</span></label>
