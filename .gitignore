@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables & secrets - JANGAN pernah di-commit
+.env
+
+# Session & log files (runtime, dibuat otomatis saat app jalan)
+flask_session/
+logs/
+
+# Upload hasil registrasi wajah / foto (data, bukan kode)
+app/static/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

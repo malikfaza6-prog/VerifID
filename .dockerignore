@@ -1,0 +1,11 @@
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+flask_session/
+logs/
+.vscode/
+.idea/
